@@ -52,7 +52,7 @@ Currently, the application can handle a small/medium workload fairly well. Howev
 - No query optimization
 - No load balancing
 - No caching
-- Nothing to prevent from creating a billion users with a billion TODOs
+- No rate limiting
 
 ## Prerequisites
 

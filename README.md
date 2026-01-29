@@ -18,6 +18,7 @@ This application demonstrates a full-stack solution using:
 - Various scalability assumptions (see `Scaling` below)
 - Username is email
 - Use JWT bearer for auth
+- API only consumed by frontend--no external consumers
 
 ## Future
 
@@ -43,6 +44,8 @@ This application demonstrates a full-stack solution using:
 - Better date handling between client/server
 - Favicon
 - Duplicate task detection
+- Extend API for external usage
+- Unit tests
 
 ### Scaling
 

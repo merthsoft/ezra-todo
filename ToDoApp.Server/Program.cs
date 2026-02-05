@@ -1,8 +1,8 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using ToDoApp.Server;
 using ToDoApp.Server.Configuration;
 using ToDoApp.Server.DataAccess;
@@ -14,8 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services
-    .AddProblemDetails()
-    .AddControllers();
+    .AddProblemDetails();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services.AddControllers();
 
 builder.Services.AddDbContext<ToDoDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=todos.db"));

@@ -4,7 +4,9 @@ using ToDoApp.Server.Models;
 
 namespace ToDoApp.Server.Services;
 
-public class ToDoService(ToDoDbContext db) : IToDoService
+public class ToDoService(
+    ILogger<ToDoService> logger,
+    ToDoDbContext db) : IToDoService
 {
     public async Task<IEnumerable<ToDoItem>> GetAllTodosAsync(string userId, CancellationToken cancellationToken = default) 
         => await db.Todos
@@ -12,12 +14,22 @@ public class ToDoService(ToDoDbContext db) : IToDoService
             .OrderBy(t => t.Id)
             .ToListAsync(cancellationToken: cancellationToken);
 
-    public async Task<ToDoItem?> GetTodoByIdAsync(string userId, int id, CancellationToken cancellationToken = default)
-        => await db.Todos
+    public async Task<ToDoItem> GetTodoByIdAsync(string userId, int id, CancellationToken cancellationToken = default)
+    {
+        var todo = await db.Todos
             .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId, cancellationToken: cancellationToken);
+
+        return todo ?? throw new ToDoNotFoundException();
+    }
 
     public async Task<ToDoItem> CreateTodoAsync(string userId, CreateToDoRequest request, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(request.Title))
+            throw new ToDoServiceException(ToDoServiceException.TitleEmptyError);
+
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ToDoServiceException(ToDoServiceException.UserIdEmptyError);
+
         var todo = new ToDoItem
         {
             Title = request.Title,
@@ -32,13 +44,25 @@ public class ToDoService(ToDoDbContext db) : IToDoService
         return todo;
     }
 
-    public async Task<ToDoItem?> UpdateTodoAsync(string userId, int id, UpdateToDoRequest request, CancellationToken cancellationToken = default)
+    public async Task<ToDoItem> UpdateTodoAsync(string userId, int id, UpdateToDoRequest request, CancellationToken cancellationToken = default)
     {
         var existingTodo = await db.Todos
             .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId, cancellationToken: cancellationToken);
-        
+
         if (existingTodo is null)
-            return null;
+        {
+            logger.LogError("Todo item with ID {Id} for user {UserId} not found.", id, userId);
+            throw new ToDoNotFoundException();
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            throw new ToDoServiceException(ToDoServiceException.TitleEmptyError);
+
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ToDoServiceException(ToDoServiceException.UserIdEmptyError);
+
+        if (request.IsComplete == true && request.CompletedOn == null)
+            throw new ToDoServiceException(ToDoServiceException.CompletedOnRequiredError);
 
         existingTodo.Title = request.Title ?? existingTodo.Title;
         existingTodo.IsComplete = request.IsComplete ?? existingTodo.IsComplete;
@@ -48,21 +72,24 @@ public class ToDoService(ToDoDbContext db) : IToDoService
                                     : request.CompletedOn ?? existingTodo.CompletedOn;
 
         await db.SaveChangesAsync(cancellationToken);
-
         return existingTodo;
     }
 
-    public async Task<bool> DeleteTodoAsync(string userId, int id, CancellationToken cancellationToken = default)
+    public async Task DeleteTodoAsync(string userId, int id, CancellationToken cancellationToken = default)
     {
-        var todo = await db.Todos
+        var existingTodo = await db.Todos
             .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId, cancellationToken: cancellationToken);
-        
-        if (todo is null)
-            return false;
 
-        db.Todos.Remove(todo);
+        if (existingTodo is null)
+        {
+            logger.LogError("Todo item with ID {Id} for user {UserId} not found.", id, userId);
+            throw new ToDoNotFoundException();
+        }
+
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ToDoServiceException(ToDoServiceException.UserIdEmptyError);
+
+        db.Todos.Remove(existingTodo);
         await db.SaveChangesAsync(cancellationToken);
-
-        return true;
     }
 }

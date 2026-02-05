@@ -10,4 +10,13 @@ public class ToDoItem
     
     public required string UserId { get; set; }
     public User User { get; set; } = null!;
+
+    public ToDoDto ToDto() => new()
+    {
+        Id = Id,
+        Title = Title,
+        IsComplete = IsComplete,
+        CompleteBy = CompleteBy,
+        CompletedOn = CompletedOn
+    };
 }

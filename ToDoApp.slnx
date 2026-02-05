@@ -4,5 +4,6 @@
     <Deploy />
   </Project>
   <Project Path="ToDoApp.AppHost/ToDoApp.AppHost.csproj" />
+  <Project Path="ToDoApp.Server.Tests/ToDoApp.Server.Tests.csproj" />
   <Project Path="ToDoApp.Server/ToDoApp.Server.csproj" />
 </Solution>

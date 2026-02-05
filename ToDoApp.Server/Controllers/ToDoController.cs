@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using ToDoApp.Server.Models;
 using ToDoApp.Server.Services;
 
@@ -22,27 +22,27 @@ public class ToDoController(IToDoService toDoService) : ControllerBase
     public async Task<IActionResult> GetTodoById(int id, CancellationToken cancellationToken = default)
     {
         var todo = await toDoService.GetTodoByIdAsync(UserId, id, cancellationToken);
-        return todo is not null ? Ok(todo) : NotFound();
+        return Ok(todo.ToDto());
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateTodo(CreateToDoRequest request, CancellationToken cancellationToken = default)
     {
         var todo = await toDoService.CreateTodoAsync(UserId, request, cancellationToken);
-        return CreatedAtRoute("GetTodoById", new { id = todo.Id }, todo);
+        return CreatedAtRoute("GetTodoById", new { id = todo.Id }, todo.ToDto());
     }
 
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateTodo(int id, UpdateToDoRequest request, CancellationToken cancellationToken = default)
     {
         var todo = await toDoService.UpdateTodoAsync(UserId, id, request, cancellationToken);
-        return todo is not null ? Ok(todo) : NotFound();
+        return Ok(todo.ToDto());
     }
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteTodo(int id, CancellationToken cancellationToken = default)
     {
-        var deleted = await toDoService.DeleteTodoAsync(UserId, id, cancellationToken);
-        return deleted ? NoContent() : NotFound();
+        await toDoService.DeleteTodoAsync(UserId, id, cancellationToken);
+        return NoContent();
     }
 }

@@ -233,6 +233,19 @@ public class ToDoServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateTodoAsync_PreservesTitle_WhenTitleIsNull()
+    {
+        // Arrange
+        var todo = await SeedTodoAsync(TestUserId, "Original title");
+        var request = new UpdateToDoRequest(null, null);
+
+        // Act
+        var newTodo = await _service.UpdateTodoAsync(TestUserId, todo.Id, request);
+
+        Assert.Equal(todo.Title, newTodo.Title);
+    }
+
+    [Fact]
     public async Task UpdateTodoAsync_ThrowsToDoServiceException_WhenCompletedWithoutDate()
     {
         // Arrange

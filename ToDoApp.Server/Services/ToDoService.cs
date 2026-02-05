@@ -55,7 +55,7 @@ public class ToDoService(
             throw new ToDoNotFoundException();
         }
 
-        if (string.IsNullOrWhiteSpace(request.Title))
+        if (request.Title == "")
             throw new ToDoServiceException(ToDoServiceException.TitleEmptyError);
 
         if (string.IsNullOrWhiteSpace(userId))

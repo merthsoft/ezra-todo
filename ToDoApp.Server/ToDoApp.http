@@ -1,0 +1,113 @@
+@baseUrl = https://localhost:7537
+
+### ==================== AUTH ====================
+
+### Register a new user
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "Password123!"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "Password123!"
+}
+
+### ==================== TO-DO ====================
+
+### Get all todos
+GET {{baseUrl}}/api/todo
+Authorization: Bearer {{login.response.body.$.token}}
+
+### Get todo by ID
+GET {{baseUrl}}/api/todo/1
+Authorization: Bearer {{login.response.body.$.token}}
+
+### Create a new todo
+# @name createTodo
+POST {{baseUrl}}/api/todo
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
+{
+  "title": "Buy groceries",
+  "isComplete": false,
+  "completeBy": "2025-01-15T12:00:00Z"
+}
+
+### Create a todo (minimal - only required fields)
+POST {{baseUrl}}/api/todo
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
+{
+  "title": "Simple task"
+}
+
+### Update a todo (full update)
+PUT {{baseUrl}}/api/todo/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
+{
+  "title": "Buy groceries and snacks",
+  "isComplete": true,
+  "completeBy": "2025-01-15T12:00:00Z",
+  "completedOn": "2025-01-10T10:30:00Z"
+}
+
+### Update a todo (partial - mark as complete)
+PUT {{baseUrl}}/api/todo/1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
+{
+  "isComplete": true,
+  "completedOn": "2025-01-10T10:30:00Z"
+}
+
+### Delete a todo
+DELETE {{baseUrl}}/api/todo/1
+Authorization: Bearer {{login.response.body.$.token}}
+
+### ==================== INVALID TOKEN (should return 401) ====================
+
+### Get all todos - INVALID TOKEN (expect 401 Unauthorized)
+GET {{baseUrl}}/api/todo
+Authorization: Bearer invalid.token.here
+
+### ==================== UNAUTHENTICATED (should return 401) ====================
+
+### Get all todos - NO AUTH (expect 401 Unauthorized)
+GET {{baseUrl}}/api/todo
+
+### Get todo by ID - NO AUTH (expect 401 Unauthorized)
+GET {{baseUrl}}/api/todo/1
+
+### Create todo - NO AUTH (expect 401 Unauthorized)
+POST {{baseUrl}}/api/todo
+Content-Type: application/json
+
+{
+  "title": "This should fail"
+}
+
+### Update todo - NO AUTH (expect 401 Unauthorized)
+PUT {{baseUrl}}/api/todo/1
+Content-Type: application/json
+
+{
+  "title": "This should fail"
+}
+
+### Delete todo - NO AUTH (expect 401 Unauthorized)
+DELETE {{baseUrl}}/api/todo/1

@@ -24,6 +24,7 @@ This application demonstrates a full-stack solution using:
 
 ### Features
 
+- Edit TODO items/"kick the can" functionality for due date--needs frontend support
 - jwt secret in key vault (or similar)
 - user email validation
 - user settings for pagination, etc.
@@ -34,7 +35,6 @@ This application demonstrates a full-stack solution using:
 - Grouping, tagging, etc.
 - Sorting on due date, status, tags, etc.
 - Search
-- Edit TODO items/"kick the can" functionality for due date
 - Export (needs research for format)
 - Better overdue indicators (for colorblind people)
 - Shared items between users
@@ -62,8 +62,8 @@ Currently, the application can handle a small/medium workload fairly well. Howev
 Before you begin, ensure you have the following installed:
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
-- [Node.js](https://nodejs.org/) (v25 or later) and npm
-- [Visual Studio 2026](https://visualstudio.microsoft.com/) or [Visual Studio Code](https://code.visualstudio.com/) with C# extension
+- [Node.js](https://nodejs.org/) (v20 or later) and npm
+- [Visual Studio 2022](https://visualstudio.microsoft.com/) (or later) or [Visual Studio Code](https://code.visualstudio.com/) with C# extension
 - [.NET Aspire workload](https://learn.microsoft.com/dotnet/aspire/fundamentals/setup-tooling)
 
 ### Installing .NET Aspire Workload
@@ -109,7 +109,7 @@ dotnet run --project ToDoApp.AppHost
 
 ### Option 2: Using Visual Studio
 
-1. Open the solution file (`.slnx`) in Visual Studio 2025
+1. Open the solution file (`.slnx`) in Visual Studio 2022 (or later)
 2. Set `ToDoApp.AppHost` as the startup project
 3. Press `F5` or click the "Start" button
 

@@ -13,6 +13,8 @@ export interface CreateTodoRequest {
 }
 
 export interface UpdateTodoRequest {
-  isComplete: boolean
+  title?: string
+  isComplete?: boolean
+  completeBy?: string | null
   completedOn?: string | null
 }

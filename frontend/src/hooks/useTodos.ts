@@ -1,98 +1,89 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { todoApi } from '../services/todoApi'
-import { ERROR_MESSAGES } from '../constants/app.constants'
 import type { ToDoItem, CreateTodoRequest, UpdateTodoRequest } from '../types/todo.types'
 
+const TODOS_QUERY_KEY = ['todos'] as const
+
 export function useTodos() {
-  const [todos, setTodos] = useState<ToDoItem[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
-  const fetchTodos = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+  const {
+    data: todos = [],
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: TODOS_QUERY_KEY,
+    queryFn: () => todoApi.fetchTodos(),
+  })
 
-    try {
-      const data = await todoApi.fetchTodos()
-      setTodos(data)
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.FETCH_FAILED
-      setError(errorMessage)
-      console.error('Error fetching todos:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const error = queryError instanceof Error ? queryError.message : queryError ? String(queryError) : null
 
-  const addTodo = useCallback(async (request: CreateTodoRequest) => {
-    try {
-      const created = await todoApi.createTodo(request)
-      setTodos(prev => [...prev, created])
-      return created
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.ADD_FAILED
-      setError(errorMessage)
-      throw err
-    }
-  }, [])
+  const addMutation = useMutation({
+    mutationFn: (request: CreateTodoRequest) => todoApi.createTodo(request),
+    onSuccess: (newTodo: ToDoItem) => {
+      queryClient.setQueryData<ToDoItem[]>(TODOS_QUERY_KEY, (old: ToDoItem[] | undefined) => [...(old ?? []), newTodo])
+    },
+  })
 
-  const updateTodo = useCallback(async (id: number, request: UpdateTodoRequest) => {
-    try {
-      const updated = await todoApi.updateTodo(id, request)
-      setTodos(prev => prev.map(t => t.id === updated.id ? updated : t))
-      return updated
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.UPDATE_FAILED
-      setError(errorMessage)
-      throw err
-    }
-  }, [])
+  const updateMutation = useMutation({
+    mutationFn: ({ id, request }: { id: number; request: UpdateTodoRequest }) => todoApi.updateTodo(id, request),
+    onSuccess: (updatedTodo: ToDoItem) => {
+      queryClient.setQueryData<ToDoItem[]>(TODOS_QUERY_KEY, (old: ToDoItem[] | undefined) =>
+        old?.map((t: ToDoItem) => (t.id === updatedTodo.id ? updatedTodo : t)) ?? []
+      )
+    },
+  })
 
-  const deleteTodo = useCallback(async (id: number) => {
-    try {
-      await todoApi.deleteTodo(id)
-      setTodos(prev => prev.filter(t => t.id !== id))
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.DELETE_FAILED
-      setError(errorMessage)
-      throw err
-    }
-  }, [])
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => todoApi.deleteTodo(id),
+    onSuccess: (_: void, id: number) => {
+      queryClient.setQueryData<ToDoItem[]>(TODOS_QUERY_KEY, (old: ToDoItem[] | undefined) => old?.filter((t: ToDoItem) => t.id !== id) ?? [])
+    },
+  })
 
-  const clearCompleted = useCallback(async () => {
-    const completedTodos = todos.filter(t => t.isComplete)
-    if (completedTodos.length === 0) {
-      return
-    }
+  const clearCompletedMutation = useMutation({
+    mutationFn: async () => {
+      const completedTodos = todos.filter((t: ToDoItem) => t.isComplete)
+      await Promise.all(completedTodos.map((todo: ToDoItem) => todoApi.deleteTodo(todo.id)))
+      return completedTodos.map((t: ToDoItem) => t.id)
+    },
+    onSuccess: (deletedIds: number[]) => {
+      queryClient.setQueryData<ToDoItem[]>(TODOS_QUERY_KEY, (old: ToDoItem[] | undefined) =>
+        old?.filter((t: ToDoItem) => !deletedIds.includes(t.id)) ?? []
+      )
+    },
+  })
 
-    try {
-      await Promise.all(completedTodos.map(todo => todoApi.deleteTodo(todo.id)))
-      setTodos(prev => prev.filter(t => !t.isComplete))
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.CLEAR_COMPLETED_FAILED
-      setError(errorMessage)
-      throw err
-    }
-  }, [todos])
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => {
+      await Promise.all(todos.map((todo: ToDoItem) => todoApi.deleteTodo(todo.id)))
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<ToDoItem[]>(TODOS_QUERY_KEY, [])
+    },
+  })
 
-  const deleteAll = useCallback(async () => {
-    if (todos.length === 0) {
-      return
-    }
+  const addTodo = async (request: CreateTodoRequest) => {
+    return addMutation.mutateAsync(request)
+  }
 
-    try {
-      await Promise.all(todos.map(todo => todoApi.deleteTodo(todo.id)))
-      setTodos([])
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : ERROR_MESSAGES.DELETE_ALL_FAILED
-      setError(errorMessage)
-      throw err
-    }
-  }, [todos])
+  const updateTodo = async (id: number, request: UpdateTodoRequest) => {
+    return updateMutation.mutateAsync({ id, request })
+  }
 
-  useEffect(() => {
-    fetchTodos()
-  }, [fetchTodos])
+  const deleteTodo = async (id: number) => {
+    return deleteMutation.mutateAsync(id)
+  }
+
+  const clearCompleted = async () => {
+    if (todos.filter((t: ToDoItem) => t.isComplete).length === 0) return
+    return clearCompletedMutation.mutateAsync()
+  }
+
+  const deleteAll = async () => {
+    if (todos.length === 0) return
+    return deleteAllMutation.mutateAsync()
+  }
 
   return {
     todos,
@@ -103,6 +94,5 @@ export function useTodos() {
     deleteTodo,
     clearCompleted,
     deleteAll,
-    refetch: fetchTodos,
   }
 }

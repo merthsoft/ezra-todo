@@ -44,8 +44,8 @@ This application demonstrates a full-stack solution using:
 - Better date handling between client/server
 - Favicon
 - Duplicate task detection
-- Extend API for external usage
-- Unit tests
+- Consider API for external usage
+- Frontend and integration tests
 
 ### Scaling
 

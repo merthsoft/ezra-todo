@@ -25,12 +25,9 @@ This application demonstrates a full-stack solution using:
 ### Features
 
 - Edit TODO items/"kick the can" functionality for due date--needs frontend support
-- jwt secret in key vault (or similar)
-- user email validation
 - user settings for pagination, etc.
 - user groups, tenants
-- OAuth with seamless login from providers (Google, Facebook, Apple, etc.)
-- Concurrent user access (think like how google docs does it)
+- Concurrent user access to shared todo board (think like how google docs does it)
 - Daily/Weekly/Monthly TODO items that auto-fill
 - Grouping, tagging, etc.
 - Sorting on due date, status, tags, etc.
@@ -39,14 +36,20 @@ This application demonstrates a full-stack solution using:
 - Better overdue indicators (for colorblind people)
 - Shared items between users
 - Shared lists between users
-- Retry logic if server is unavailable
-- Local caching in case internet goes down etc.
+- Robust retry logic if server is unavailable
 - Better date handling between client/server
 - Favicon
 - Duplicate task detection
 - Consider API for external usage
 - Frontend and integration tests
 - Use some sort of mapper for DTOs, if we end up adding more (mappers can be weird sometimes, so this is more a "research if it's worth it")
+
+### Security
+
+- jwt secret in key vault (or similar)
+- user email validation
+- OAuth with seamless login from providers (Google, Facebook, Apple, etc.)
+- store token is httpOnly cookier
 
 ### Scaling
 

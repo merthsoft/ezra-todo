@@ -16,7 +16,7 @@ public class ToDoController(IToDoService toDoService) : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetAllTodos(CancellationToken cancellationToken = default)
-        => Ok(await toDoService.GetAllTodosAsync(UserId, cancellationToken));
+        => Ok((await toDoService.GetAllTodosAsync(UserId, cancellationToken)).Select(t => t.ToDto()));
 
     [HttpGet("{id:int}", Name = "GetTodoById")]
     public async Task<IActionResult> GetTodoById(int id, CancellationToken cancellationToken = default)

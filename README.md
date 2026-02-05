@@ -46,6 +46,7 @@ This application demonstrates a full-stack solution using:
 - Duplicate task detection
 - Consider API for external usage
 - Frontend and integration tests
+- Use some sort of mapper for DTOs, if we end up adding more (mappers can be weird sometimes, so this is more a "research if it's worth it")
 
 ### Scaling
 
